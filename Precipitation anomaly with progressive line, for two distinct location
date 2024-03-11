@@ -1,0 +1,33 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the data from Esther.csv
+df = pd.read_csv('NewEsther.csv')
+
+# Convert the MONTH column to datetime format
+df['MONTH'] = pd.to_datetime(df['MONTH'])
+
+# Calculate long-term average precipitation for Lagos and Port Harcourt
+lagos_avg_precip = df['LAGOS PRECIP'].mean()
+ph_avg_precip = df['PH PRECIP'].mean()
+
+# Calculate annual precipitation anomalies for Lagos and Port Harcourt
+df['Year'] = df['MONTH'].dt.year
+lagos_annual_anomaly = df.groupby('Year')['LAGOS PRECIP'].mean() - lagos_avg_precip
+ph_annual_anomaly = df.groupby('Year')['PH PRECIP'].mean() - ph_avg_precip
+
+# Plot the annual precipitation anomalies with linear trendlines for Lagos and Port Harcourt
+plt.figure(figsize=(12, 6))
+
+sns.regplot(x=lagos_annual_anomaly.index, y=lagos_annual_anomaly, scatter_kws={'s': 10}, line_kws={'color': 'blue'}, label='Lagos')
+sns.regplot(x=ph_annual_anomaly.index, y=ph_annual_anomaly, scatter_kws={'s': 10}, line_kws={'color': 'red'}, label='PH')
+
+plt.axhline(0, color='black', linestyle='--', linewidth=1, label='Zero Anomaly')
+
+plt.title('Annual Precipitation Anomalies with Linear Trendlines for Lagos and PH')
+plt.xlabel('Year')
+plt.ylabel('Annual Precipitation Anomaly (mm)')
+plt.legend()
+plt.grid(True)
+plt.show()
