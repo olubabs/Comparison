@@ -1,0 +1,33 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import linregress
+
+# Load the data from Esther.csv
+df = pd.read_csv('yearly_average_Esther.csv')
+
+# Calculate linear regression for Lagos
+slope_lagos, intercept_lagos, _, _, _ = linregress(df['LAGOS PRECIP'], df['SST'])
+
+# Calculate linear regression for Port Harcourt
+slope_ph, intercept_ph, _, _, _ = linregress(df['PH PRECIP'], df['SST'])
+
+# Create scatter plots with linear regression lines for both cities
+plt.figure(figsize=(12, 6))
+
+# Scatter plot for Lagos
+plt.subplot(1, 2, 1)
+sns.regplot(x='LAGOS PRECIP', y='SST', data=df, scatter_kws={'s': 10}, line_kws={'color': 'red'})
+plt.title(f'Lagos: Yearly, Rainfall vs. SST (Correlation: {df["LAGOS PRECIP"].corr(df["SST"]):.2f})')
+plt.xlabel('Lagos Precipitation')
+plt.ylabel('SST')
+
+# Scatter plot for Port Harcourt
+plt.subplot(1, 2, 2)
+sns.regplot(x='PH PRECIP', y='SST', data=df, scatter_kws={'s': 10}, line_kws={'color': 'green'})
+plt.title(f'Port Harcourt: Yearly, Rainfall vs. SST (Correlation: {df["PH PRECIP"].corr(df["SST"]):.2f})')
+plt.xlabel('PH Precipitation')
+plt.ylabel('SST')
+
+plt.tight_layout()
+plt.show()
