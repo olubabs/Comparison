@@ -1,0 +1,32 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the data from Esther.csv
+df = pd.read_csv('NewEsther.csv')
+
+# Convert the MONTH column to datetime format
+df['MONTH'] = pd.to_datetime(df['MONTH'])
+
+# Extract the month and year from the MONTH column
+df['Month'] = df['MONTH'].dt.month_name()
+df['Year'] = df['MONTH'].dt.year
+
+# Set the order of months
+month_order = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+df['Month'] = pd.Categorical(df['Month'], categories=month_order, ordered=True)
+
+# Calculate monthly mean precipitation for Lagos and Port Harcourt
+lagos_precip_monthly_mean = df.groupby(['Year', 'Month']).mean()['LAGOS PRECIP'].reset_index()
+ph_precip_monthly_mean = df.groupby(['Year', 'Month']).mean()['PH PRECIP'].reset_index()
+
+# Plotting for both cities on the same plot
+plt.figure(figsize=(12, 6))
+sns.lineplot(data=lagos_precip_monthly_mean, x='Month', y='LAGOS PRECIP', label='Lagos')
+sns.lineplot(data=ph_precip_monthly_mean, x='Month', y='PH PRECIP', label='Port Harcourt')
+plt.title('Monthly Mean Precipitation for Lagos and Port Harcourt')
+plt.xlabel('Month')
+plt.ylabel('Mean Precipitation (mm)')
+plt.xticks(rotation=45)
+plt.legend()
+plt.show()
