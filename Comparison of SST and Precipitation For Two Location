@@ -1,0 +1,48 @@
+import pandas as pd
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+
+# Load the data from Esther.csv
+df = pd.read_csv('NewEsther.csv')
+
+# Create a constant term for the regression model
+df['constant'] = 1
+
+# Regression analysis for Lagos with SST as independent variable
+lagos_model = sm.OLS(df['LAGOS PRECIP'], df[['constant', 'SST']])
+lagos_results = lagos_model.fit()
+
+# Regression analysis for Port Harcourt with SST as independent variable
+ph_model = sm.OLS(df['PH PRECIP'], df[['constant', 'SST']])
+ph_results = ph_model.fit()
+
+# Display regression summary
+print("Regression Analysis for Lagos:")
+print(lagos_results.summary())
+
+print("\nRegression Analysis for Port Harcourt:")
+print(ph_results.summary())
+
+# Plot regression lines with linear equations
+plt.figure(figsize=(12, 6))
+
+# Regression plot for Lagos
+plt.subplot(1, 2, 1)
+plt.scatter(df['SST'], df['LAGOS PRECIP'], alpha=0.5)
+plt.plot(df['SST'], lagos_results.predict(), color='red', label=f'Linear Equation: x = {lagos_results.params[0]:.2f} + {lagos_results.params[1]:.2f}y')
+plt.title('Regression Analysis: Lagos SST and Precipitation')
+plt.xlabel('SST')
+plt.ylabel('Lagos Precipitation')
+plt.legend()
+
+# Regression plot for Port Harcourt
+plt.subplot(1, 2, 2)
+plt.scatter(df['SST'], df['PH PRECIP'], alpha=0.5)
+plt.plot(df['SST'], ph_results.predict(), color='green', label=f'Linear Equation: x = {ph_results.params[0]:.2f} + {ph_results.params[1]:.2f}y')
+plt.title('Regression Analysis: Port Harcourt SST and Precipitation')
+plt.xlabel('SST')
+plt.ylabel('PH Precipitation')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
