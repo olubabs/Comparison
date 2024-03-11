@@ -1,0 +1,32 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the CSV file into a DataFrame
+file_path = 'NewEsther.csv'
+df = pd.read_csv(file_path)
+
+# Extract relevant columns
+months = df['MONTH']
+lagos_precip = df['LAGOS PRECIP']
+ph_precip = df['PH PRECIP']
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.plot(months, lagos_precip, label='Lagos Precipitation')
+plt.plot(months, ph_precip, label='Port Harcourt Precipitation')
+
+# Adding labels and title
+plt.xlabel('Month')
+plt.ylabel('Precipitation')
+plt.title('Monthly Lagos and Port Harcourt Precipitation (1991-2020)')
+
+# Customize the x-axis ticks to show every 12th month
+plt.xticks(months[::12], rotation=45, ha='right')
+
+# Add grid
+plt.grid(True, linestyle='--', alpha=0.7)
+
+# Show the plot
+plt.legend()
+plt.tight_layout()
+plt.show()
