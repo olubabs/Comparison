@@ -1,0 +1,50 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.signal import correlate
+import numpy as np
+
+# Load the data from Esther.csv
+df = pd.read_csv('NewEsther.csv')
+
+# Convert the MONTH column to datetime format
+df['MONTH'] = pd.to_datetime(df['MONTH'])
+
+# Extract the year from the MONTH column
+df['Year'] = df['MONTH'].dt.year
+
+# Calculate yearly averages for rainfall and SST for Lagos
+lagos_yearly = df.groupby('Year').agg({'LAGOS PRECIP': 'mean', 'SST': 'mean'}).reset_index()
+
+# Calculate yearly averages for rainfall and SST for Port Harcourt
+ph_yearly = df.groupby('Year').agg({'PH PRECIP': 'mean', 'SST': 'mean'}).reset_index()
+
+# Perform cross-correlation analysis between yearly rainfall and SST for Lagos and Port Harcourt
+lagos_precip_corr = correlate(lagos_yearly['LAGOS PRECIP'], lagos_yearly['SST'], mode='full', method='auto')
+ph_precip_corr = correlate(ph_yearly['PH PRECIP'], ph_yearly['SST'], mode='full', method='auto')
+
+# Normalize the correlation coefficients to be between -1 and 1
+lagos_precip_corr /= np.max(np.abs(lagos_precip_corr))
+ph_precip_corr /= np.max(np.abs(ph_precip_corr))
+
+# Create lag values for the cross-correlation plots
+lags = range(-len(df['Year'].unique()) + 1, len(df['Year'].unique()))
+
+# Plot cross-correlation functions for both cities
+plt.figure(figsize=(12, 6))
+
+# Cross-correlation plot for Lagos
+plt.subplot(1, 2, 1)
+plt.plot(lags, lagos_precip_corr, color='blue')
+plt.title('Yearly Cross-Correlation: Lagos Precipitation and SST')
+plt.xlabel('Lag (Years)')
+plt.ylabel('Correlation Coefficient')
+
+# Cross-correlation plot for Port Harcourt
+plt.subplot(1, 2, 2)
+plt.plot(lags, ph_precip_corr, color='green')
+plt.title('Yearly Cross-Correlation: Port Harcourt Precipitation and SST')
+plt.xlabel('Lag (Years)')
+plt.ylabel('Correlation Coefficient')
+
+plt.tight_layout()
+plt.show()
