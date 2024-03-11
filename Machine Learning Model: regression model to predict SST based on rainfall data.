@@ -1,0 +1,70 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn import metrics
+import matplotlib.pyplot as plt
+
+# Load the data from Esther.csv
+df = pd.read_csv('NewEsther.csv')
+
+# Extract features (rainfall) and target variable (SST) for Lagos
+X_lagos = df[['LAGOS PRECIP']]
+y_lagos = df['SST']
+
+# Extract features (rainfall) and target variable (SST) for Port Harcourt
+X_ph = df[['PH PRECIP']]
+y_ph = df['SST']
+
+# Split the data into training and testing sets for Lagos
+X_train_lagos, X_test_lagos, y_train_lagos, y_test_lagos = train_test_split(X_lagos, y_lagos, test_size=0.2, random_state=42)
+
+# Split the data into training and testing sets for Port Harcourt
+X_train_ph, X_test_ph, y_train_ph, y_test_ph = train_test_split(X_ph, y_ph, test_size=0.2, random_state=42)
+
+# Train a linear regression model for Lagos
+model_lagos = LinearRegression()
+model_lagos.fit(X_train_lagos, y_train_lagos)
+
+# Train a linear regression model for Port Harcourt
+model_ph = LinearRegression()
+model_ph.fit(X_train_ph, y_train_ph)
+
+# Make predictions on the test set for Lagos
+predictions_lagos = model_lagos.predict(X_test_lagos)
+
+# Make predictions on the test set for Port Harcourt
+predictions_ph = model_ph.predict(X_test_ph)
+
+# Evaluate the models for Lagos
+print('Metrics for Lagos:')
+print('Mean Absolute Error:', metrics.mean_absolute_error(y_test_lagos, predictions_lagos))
+print('Mean Squared Error:', metrics.mean_squared_error(y_test_lagos, predictions_lagos))
+print('Root Mean Squared Error:', metrics.mean_squared_error(y_test_lagos, predictions_lagos, squared=False))
+
+# Evaluate the models for Port Harcourt
+print('\nMetrics for Port Harcourt:')
+print('Mean Absolute Error:', metrics.mean_absolute_error(y_test_ph, predictions_ph))
+print('Mean Squared Error:', metrics.mean_squared_error(y_test_ph, predictions_ph))
+print('Root Mean Squared Error:', metrics.mean_squared_error(y_test_ph, predictions_ph, squared=False))
+
+# Plot the regression lines for Lagos
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.scatter(X_test_lagos, y_test_lagos, color='blue', label='Actual')
+plt.plot(X_test_lagos, predictions_lagos, color='red', linewidth=2, label='Regression Line')
+plt.title('Linear Regression: Lagos Precipitation vs. SST')
+plt.xlabel('Lagos Precipitation')
+plt.ylabel('SST')
+plt.legend()
+
+# Plot the regression lines for Port Harcourt
+plt.subplot(1, 2, 2)
+plt.scatter(X_test_ph, y_test_ph, color='green', label='Actual')
+plt.plot(X_test_ph, predictions_ph, color='purple', linewidth=2, label='Regression Line')
+plt.title('Linear Regression: Port Harcourt Precipitation vs. SST')
+plt.xlabel('PH Precipitation')
+plt.ylabel('SST')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
