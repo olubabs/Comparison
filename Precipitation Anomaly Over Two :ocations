@@ -1,0 +1,35 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data from Esther.csv
+df = pd.read_csv('Esther.csv')
+
+# Convert the MONTH column to datetime format
+df['MONTH'] = pd.to_datetime(df['MONTH'])
+
+# Calculate long-term average SST for Lagos and Port Harcourt
+lagos_avg_sst = df['LAGOS SST'].mean()
+ph_avg_sst = df['PH SST'].mean()
+
+# Calculate annual SST anomalies for Lagos and Port Harcourt
+df['Year'] = df['MONTH'].dt.year
+lagos_annual_sst_anomaly = df.groupby('Year')['LAGOS SST'].mean() - lagos_avg_sst
+ph_annual_sst_anomaly = df.groupby('Year')['PH SST'].mean() - ph_avg_sst
+
+# Plot the annual SST anomalies for Lagos and Port Harcourt using a bar chart
+plt.figure(figsize=(12, 6))
+
+bar_width = 0.35
+index = df['Year'].unique()
+
+plt.bar(index - bar_width/2, lagos_annual_sst_anomaly, bar_width, label='Lagos SST Anomaly', color='blue')
+plt.bar(index + bar_width/2, ph_annual_sst_anomaly, bar_width, label='PH SST Anomaly', color='red')
+
+plt.axhline(0, color='black', linestyle='--', linewidth=1, label='Zero Anomaly')
+
+plt.title('Annual Sea Surface Temperature Anomalies for Lagos and PH')
+plt.xlabel('Year')
+plt.ylabel('SST Anomaly (°C)')
+plt.legend()
+plt.grid(True)
+plt.show()
