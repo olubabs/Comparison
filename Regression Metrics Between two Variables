@@ -1,0 +1,89 @@
+import xarray as xr
+import numpy as np
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+
+def analyze_metrics_and_regression(file_path):
+    # Load the dataset
+    data = xr.open_dataset(file_path)
+
+    # Interpolate t2m to the grid of tas
+    t2m_interpolated = data['t2m'].interp(latitude=data['lat'], longitude=data['lon'], method='nearest')
+
+    # Select the first level of tas for simplicity (if it has an additional dimension)
+    tas_selected = data['tas'].isel(m2=0) if 'm2' in data['tas'].dims else data['tas']
+
+    # Aligning the two data arrays to have the same shape
+    t2m_aligned, tas_aligned = xr.align(t2m_interpolated, tas_selected)
+
+    # Calculate the correlation coefficient across the time dimension
+    correlation = xr.corr(t2m_aligned, tas_aligned, dim="time")
+
+    # Calculate the mean correlation across all spatial points
+    mean_correlation = correlation.mean(dim=["lat", "lon"]).values
+
+    # Calculate the Mean Absolute Error (MAE) across the time dimension
+    mae = np.abs(t2m_aligned - tas_aligned).mean(dim="time")
+
+    # Calculate the mean MAE across all spatial points
+    mean_mae = mae.mean(dim=["lat", "lon"]).values
+
+    # Calculate the Mean Squared Error (MSE) across the time dimension
+    mse = ((t2m_aligned - tas_aligned)**2).mean(dim="time")
+
+    # Calculate the mean MSE across all spatial points
+    mean_mse = mse.mean(dim=["lat", "lon"]).values
+
+    # Calculate the Root Mean Squared Error (RMSE) across all spatial points
+    rmse = np.sqrt(mse.mean(dim=["lat", "lon"]).values)
+
+    # Calculate the correlation coefficient across the time dimension for R-squared
+    correlation_r_squared = xr.corr(t2m_aligned, tas_aligned, dim="time")
+
+    # Square the correlation coefficient to get R-squared
+    r_squared = correlation_r_squared**2
+
+    # Calculate the mean R-squared across all spatial points
+    mean_r_squared = r_squared.mean(dim=["lat", "lon"]).values
+
+    # Drop NaN values for regression
+    t2m_flat = t2m_aligned.stack(points=('lat', 'lon', 'time')).dropna('points')
+    tas_flat = tas_aligned.stack(points=('lat', 'lon', 'time')).dropna('points')
+
+    # Ensure both variables have the same number of non-NaN values
+    common_points = np.intersect1d(t2m_flat['points'], tas_flat['points'])
+    t2m_flat = t2m_flat.sel(points=common_points)
+    tas_flat = tas_flat.sel(points=common_points)
+
+    # Perform linear regression
+    model = LinearRegression()
+    X = t2m_flat.values.reshape(-1, 1)
+    y = tas_flat.values.flatten()
+    model.fit(X, y)
+
+    # Get regression coefficients
+    slope = model.coef_[0]
+    intercept = model.intercept_
+
+    # Plot the scatter plot and regression line
+    plt.scatter(t2m_flat, tas_flat, label='Data Points')
+    plt.plot(t2m_flat, slope * t2m_flat + intercept, color='red', label='Regression Line')
+    
+    plt.xlabel('ERA5')
+    plt.ylabel('RegCM5')
+    plt.title('Temperature Regression Plot (2021)')
+    plt.legend()
+    plt.show()
+
+    return mean_correlation, mean_mae, mean_mse, rmse, mean_r_squared, slope, intercept
+
+# Replace with your actual file path
+file_path = 'RCM.era5.21.nc'
+result = analyze_metrics_and_regression(file_path)
+
+print(f"Mean Correlation: {result[0]}")
+print(f"Mean Absolute Error: {result[1]}")
+print(f"Mean Squared Error: {result[2]}")
+print(f"Root Mean Squared Error: {result[3]}")
+print(f"R-squared Value: {result[4]}")
+print(f"Regression Equation: RegCM5.T = {result[5]:.4f} * ERA5.T + {result[6]:.4f}")
