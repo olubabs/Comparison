@@ -1,0 +1,35 @@
+import xarray as xr
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+
+def plot_correlation(file_path):
+    # Load the dataset
+    data = xr.open_dataset(file_path)
+
+    # Interpolate t2m to the grid of tas
+    t2m_interpolated = data['t2m'].interp(latitude=data['lat'], longitude=data['lon'], method='nearest')
+
+    # Select the first level of tas for simplicity (if it has an additional dimension)
+    tas_selected = data['tas'].isel(m2=0) if 'm2' in data['tas'].dims else data['tas']
+
+    # Aligning the two data arrays to have the same shape
+    t2m_aligned, tas_aligned = xr.align(t2m_interpolated, tas_selected)
+
+    # Calculate the correlation coefficient across the time dimension
+    correlation = xr.corr(t2m_aligned, tas_aligned, dim="time")
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    ax.coastlines()
+
+    # Plot the correlation
+    correlation.plot(ax=ax, transform=ccrs.PlateCarree(),
+                     cbar_kwargs={'label': 'Correlation Coefficient'})
+
+    plt.title('ERA-5 and RegCM-5 Temperature Spatial Correlation (2021)')
+    plt.show()
+
+# Replace with your actual file path
+file_path = 'RCM.era5.21.nc'
+plot_correlation(file_path)
